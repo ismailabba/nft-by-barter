@@ -37,13 +37,22 @@ contract NftByBarter is ReentrancyGuard {
 
     );
 
-    event Bought(
+    event SwappedOne(
          uint itemId,
          address indexed nft,
          uint tokenId,
          uint price,
-         address indexed seller,
-         address indexed buyer
+         address indexed swapper
+        
+    );
+
+     event SwappedTwo( 
+         uint itemId,
+         address indexed nft,
+         uint tokenId,
+         uint price,
+         address indexed swapper
+        
         
 
     );
@@ -75,37 +84,54 @@ contract NftByBarter is ReentrancyGuard {
         emit OfferedSwap(itemCount, address(_nft), _tokenId, _price, msg.sender);
     }
 
-      function purchaseItem(uint _itemId) external payable nonReentrant {
-       uint _totalPrice = getTotalPrice(_itemId);
-       Item storage item = items[_itemId];
+      function swapItem(uint _itemId1, uint _itemId2) external payable nonReentrant {
+       uint _totalPrice = getTotalPrice(_itemId1);
+       
+       Item storage firstItem = items[_itemId1];
+       Item storage secondItem = items[_itemId2];
+
+        
       
 
-        require(_itemId > 0 && _itemId <= itemCount, "item doesn't exist");
-        require(msg.value >= _totalPrice, "not enough ether to cover item price and market fee");
-        require(!item.sold, "item already sold");
+        require(_itemId1 > 0 && _itemId1 <= itemCount, "item1 doesn't exist");
+        require(_itemId2 > 0 && _itemId2 <= itemCount, "item2 doesn't exist");
+
+        //require(msg.value + items[_itemId2].price  >= _totalPrice, "not enough ether to cover item price and market fee");
+
+        require(!firstItem.swapped, "item1 already swapped");
+         require(!secondItem.swapped, "item2 already swapped");
+
+        
+       //transfer nft to buyer
+       firstItem.nft.transferFrom(address(this), msg.sender, firstItem.tokenId);
+       
+       //transfer nft to buyer
+       secondItem.nft.transferFrom(address(this), firstItem.swapper, secondItem.tokenId); 
 
        //pay seller and feeAccount
-       item.seller.transfer(item.price);
-       feeAccount.transfer(_totalPrice - item.price);
+       //item.seller.transfer(item.price);
+       feeAccount.transfer(_totalPrice - firstItem.price);
 
-       //update item to sold
-       item.sold = true;
+       //update item to swapped
+       firstItem.swapped = true;
+       secondItem.swapped = true;
 
-       //transfer nft to buyer
-       item.nft.transferFrom(address(this), msg.sender, item.tokenId);
 
        //bought event
-       emit Bought(
-        _itemId, 
-        address(item.nft),
-        item.tokenId, 
-        item.price,
-        item.seller,
-        msg.sender
-        );
+       emit SwappedOne(_itemId1, address(firstItem.nft), firstItem.tokenId, firstItem.price, firstItem.swapper);
+       
+       emit SwappedTwo( _itemId2, address(secondItem.nft), secondItem.tokenId, secondItem.price, secondItem.swapper);
+
 
 
     }
+
+
+    function getTotalPrice(uint _itemId) view public returns(uint) {
+          return((items[_itemId].price*(100 + feePercent))/100);
+    }
+
+    //compare nfts
 
     
 
