@@ -58,7 +58,9 @@ const Create = ({ marketplace, nft }) => {
     await(await nft.setApprovalForAll(marketplace.address, true)).wait()
     // add nft to marketplace
     const listingPrice = ethers.utils.parseEther(price.toString())
+
     await(await marketplace.makeItem(nft.address, id, listingPrice)).wait()
+    
   }
   return (
     <div className="container-fluid mt-5">

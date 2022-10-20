@@ -16,7 +16,7 @@ contract NftByBarter is ReentrancyGuard {
     uint public itemCount;
 
     //track nfts listed
-    struct Item{
+    struct SwapItem{
         uint itemId;
         //instance of nft contrat
         IERC721 nft;
@@ -58,7 +58,7 @@ contract NftByBarter is ReentrancyGuard {
     );
 
     //store all the itrms
-    mapping(uint => Item) public items;
+    mapping(uint => SwapItem) public swapitems;
 
     constructor(uint _feePercent){
         feeAccount = payable(msg.sender);
@@ -78,7 +78,7 @@ contract NftByBarter is ReentrancyGuard {
         _nft.transferFrom(msg.sender, address(this), _tokenId);
 
         //add new item to items mapping
-        items[itemCount] = Item(itemCount, _nft, _tokenId, _price, payable(msg.sender), false);
+        swapitems[itemCount] = SwapItem(itemCount, _nft, _tokenId, _price, payable(msg.sender), false);
 
         //emit event
         emit OfferedSwap(itemCount, address(_nft), _tokenId, _price, msg.sender);
@@ -87,8 +87,8 @@ contract NftByBarter is ReentrancyGuard {
       function swapItem(uint _itemId1, uint _itemId2) external payable nonReentrant {
        uint _totalPrice = getTotalPrice(_itemId1);
        
-       Item storage firstItem = items[_itemId1];
-       Item storage secondItem = items[_itemId2];
+       SwapItem storage firstItem = swapitems[_itemId1];
+       SwapItem storage secondItem = swapitems[_itemId2];
 
         
       
@@ -97,17 +97,21 @@ contract NftByBarter is ReentrancyGuard {
         require(_itemId2 > 0 && _itemId2 <= itemCount, "item2 doesn't exist");
 
         //require(msg.value + items[_itemId2].price  >= _totalPrice, "not enough ether to cover item price and market fee");
+        require(swapitems[_itemId1].price == swapitems[_itemId2].price, "provide nft of thesame value");
 
         require(!firstItem.swapped, "item1 already swapped");
-         require(!secondItem.swapped, "item2 already swapped");
+        require(!secondItem.swapped, "item2 already swapped");
 
         
+
        //transfer nft to buyer
        firstItem.nft.transferFrom(address(this), msg.sender, firstItem.tokenId);
        
+
        //transfer nft to buyer
        secondItem.nft.transferFrom(address(this), firstItem.swapper, secondItem.tokenId); 
-
+       
+       
        //pay seller and feeAccount
        //item.seller.transfer(item.price);
        feeAccount.transfer(_totalPrice - firstItem.price);
@@ -128,12 +132,10 @@ contract NftByBarter is ReentrancyGuard {
 
 
     function getTotalPrice(uint _itemId) view public returns(uint) {
-          return((items[_itemId].price*(100 + feePercent))/100);
+          return((swapitems[_itemId].price*(100 + feePercent))/100);
     }
 
     //compare nfts
-
-    
 
 
  

@@ -13,8 +13,8 @@ const Navigation = ({ web3Handler, account }) => {
         <Navbar className = "color-nav" expand="lg" variant="light">
             <Container>
                 <Navbar.Brand>
-                    <img src={logo} width="40" height="40" className="" alt="" />
-                    &nbsp; AFRO NFT Marketplace
+                    <img src={logo} width="80" height="40" className="" alt="" />
+                    &nbsp; NFT BY BARTER
                 </Navbar.Brand>
                 <Navbar.Toggle aria-controls="responsive-navbar-nav" />
                 <Navbar.Collapse id="responsive-navbar-nav">

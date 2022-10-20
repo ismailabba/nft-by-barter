@@ -10,7 +10,8 @@ import MarketplaceAddress from '../contractsData/Marketplace-address.json'
 import NFTAbi from '../contractsData/NFT.json'
 import NFTAddress from '../contractsData/NFT-address.json'
 import Navigation from './Navbar';
-
+import NftByBarterAbi from '../contractsData/NftByBarter.json'
+import NftByBarterAddress from '../contractsData/NftByBarter-address.json'
 import { Spinner } from 'react-bootstrap'
 
 import {
@@ -25,11 +26,13 @@ import MyListedItems from './MyListedItems.js'
 import MyPurchases from './MyPurchases.js'
 
 
+
 function App() {
   const [loading, setLoading] = useState(true)
   const [account, setAccount] = useState(null)
   const [nft, setNFT] = useState({})
   const [marketplace, setMarketplace] = useState({})
+  const [nftbybarter, setNftByBarter] = useState({})
   // MetaMask Login/Connect
   const web3Handler = async () => {
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
@@ -56,6 +59,8 @@ function App() {
       setMarketplace(marketplace)
       const nft = new ethers.Contract(NFTAddress.address, NFTAbi.abi, signer)
       setNFT(nft)
+      const nftbybarter = new ethers.Contract(NftByBarterAddress.address, NftByBarterAbi.abi, signer)
+      setNftByBarter(nftbybarter)
       setLoading(false)
     }
 
@@ -81,11 +86,14 @@ function App() {
               <Create marketplace={marketplace} nft={nft} />
             } />
             <Route path="/my-listed-items" element={
-              <MyListedItems marketplace={marketplace} nft={nft} account={account} />
+              <MyListedItems nftbybarter={nftbybarter} nft={nft} account={account} />
             } />
             <Route path="/my-purchases" element={
               <MyPurchases marketplace={marketplace} nft={nft} account={account} />
             } />
+            
+           
+           
           </Routes>
         )}
       </div>

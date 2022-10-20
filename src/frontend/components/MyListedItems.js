@@ -5,7 +5,7 @@ import { Row, Col, Card } from 'react-bootstrap'
 function renderSoldItems(items) {
   return (
     <>
-      <h2>Sold</h2>
+      <h2>Swapped</h2>
       <Row xs={1} md={2} lg={4} className="g-4 py-3">
         {items.map((item, idx) => (
           <Col key={idx} className="overflow-hidden">
@@ -22,25 +22,25 @@ function renderSoldItems(items) {
   )
 }
 
-export default function MyListedItems({ marketplace, nft, account }) {
+export default function MyListedItems({ nftbybarter, nft, account }) {
   const [loading, setLoading] = useState(true)
   const [listedItems, setListedItems] = useState([])
-  const [soldItems, setSoldItems] = useState([])
+  const [swapItems, setSwapItems] = useState([])
   const loadListedItems = async () => {
     // Load all sold items that the user listed
-    const itemCount = await marketplace.itemCount()
+    const itemCount = await nftbybarter.itemCount()
     let listedItems = []
-    let soldItems = []
+    let swapItems = []
     for (let indx = 1; indx <= itemCount; indx++) {
-      const i = await marketplace.items(indx)
-      if (i.seller.toLowerCase() === account) {
+      const i = await nftbybarter.items(indx)
+      if (i.swapper.toLowerCase() === account) {
         // get uri url from nft contract
         const uri = await nft.tokenURI(i.tokenId)
         // use uri to fetch the nft metadata stored on ipfs 
         const response = await fetch(uri)
         const metadata = await response.json()
         // get total price of item (item price + fee)
-        const totalPrice = await marketplace.getTotalPrice(i.itemId)
+        const totalPrice = await nftbybarter.getTotalPrice(i.itemId)
         // define listed item object
         let item = {
           totalPrice,
@@ -52,12 +52,12 @@ export default function MyListedItems({ marketplace, nft, account }) {
         }
         listedItems.push(item)
         // Add listed item to sold items array if sold
-        if (i.sold) soldItems.push(item)
+        if (i.swapped) swapItems.push(item)
       }
     }
     setLoading(false)
     setListedItems(listedItems)
-    setSoldItems(soldItems)
+    setSwapItems(swapItems)
   }
   useEffect(() => {
     loadListedItems()
@@ -82,7 +82,7 @@ export default function MyListedItems({ marketplace, nft, account }) {
               </Col>
             ))}
           </Row>
-            {soldItems.length > 0 && renderSoldItems(soldItems)}
+            {swapItems.length > 0 && renderSoldItems(swapItems)}
         </div>
         : (
           <main style={{ padding: "1rem 0" }}>
